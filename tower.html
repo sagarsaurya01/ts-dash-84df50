@@ -1,338 +1,418 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Control Tower</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<meta name="robots" content="noindex,nofollow">
+<title>Control Tower — Live Books</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root{
-    --bg:#F3F5F4; --card:#fff; --ink:#0F1A24; --muted:#4A5A66; --line:#D9E0E3;
-    --teal:#0B6E7F; --teal-d:#084F5C;
-    --red-fg:#B42318; --red-bg:#FDECEA; --red-bd:#F5C2BD;
-    --amb-fg:#7A4E00; --amb-bg:#FFF4D6; --amb-bd:#EBD38F;
-    --grn-fg:#1E6B3A; --grn-bg:#E3F3E8; --grn-bd:#B9DEC5;
-    --nd-fg:#5c6b73; --nd-bg:#eef1f2; --nd-bd:#d9e0e3;
-    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --bg:#F3F5F4; --ink:#0F1A24; --teal:#0B6E7F; --teal-d:#084F5C; --teal-tint:#E9F3F5; --teal-tint-b:#C4DDE2;
+    --card:#FFFFFF; --line:#D9E0E3; --lbl:#4A5A66; --row:#E6EBED;
+    --alert-bg:#FBEDE3; --alert-b:#EBC4A6; --alert-l:#7A3508; --alert-v:#8A3C09;
+    --nd-bg:#F0F2F2; --nd-b:#DBE1E2;
+    --body:'Instrument Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
   }
-  @media (prefers-color-scheme:dark){:root{
-    --bg:#13161a; --card:#1c2128; --ink:#e7eaec; --muted:#9aa4ab; --line:#2b323a;
-    --teal:#4bb8cc; --teal-d:#7fd0df;
-    --red-bg:#3a1d16; --red-bd:#5c2a20; --amb-bg:#352a12; --amb-bd:#574620;
-    --grn-bg:#15301f; --grn-bd:#245236; --nd-fg:#8a949b; --nd-bg:#232a31; --nd-bd:#2b323a; color-scheme:dark;
-  }}
   *{box-sizing:border-box} html,body{margin:0}
-  body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.45}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5}
+  a{color:var(--teal);text-decoration:none}a:hover{color:var(--teal-d)}
   .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-  .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-  .tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;white-space:nowrap}
-  header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px clamp(16px,3vw,40px);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .brand{display:flex;align-items:center;gap:9px;font-weight:600}
-  .brand b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:6px;background:var(--teal);color:#fff;font-size:13px}
-  .brand .sub{font-family:var(--mono);font-size:11.5px;color:var(--muted);font-weight:400}
-  nav{display:flex;gap:2px;flex-wrap:wrap}
-  nav button{border:1px solid transparent;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:6px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
-  nav button:hover{background:#e7ecee;color:var(--ink)}
-  @media (prefers-color-scheme:dark){nav button:hover{background:#242b32}}
-  nav button[aria-current="true"]{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:600}
-  nav button .nd{font-size:9px;color:var(--nd-fg);margin-left:4px}
-  .right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  select{font:inherit;font-size:.85rem;padding:4px 8px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-  .live{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:.05em}
-  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:p 1.8s infinite}
-  @keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
-  main{padding:18px clamp(16px,3vw,40px) 40px;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-  h2{margin:0;font-size:15px;font-weight:600}
-  .sec-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-  .hint{font-size:12px;color:var(--muted)}
-  .brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:8px}
-  .brief .line{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;border-radius:8px;border:1px solid var(--line)}
-  .brief .line .word{flex:0 0 78px;text-align:center;font-weight:500}
-  .brief .line .dept{flex:0 0 auto}
-  .brief .line .txt{flex:1 1 auto;min-width:0;font-size:13.5px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px}
-  .dcard{border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--line)}
-  .dcard .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .dcard .ttl{font-size:14px;font-weight:600;line-height:1.35}
-  .dcard .why{font-size:12.5px;color:var(--muted)}
-  .dcard button.act{min-height:34px;padding:0 12px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-  .dcard button.act.primary{border:0;background:var(--teal);color:#fff}
-  .whybtn{margin-left:auto;border:0;background:transparent;color:var(--teal);font-size:12px;font-weight:600;cursor:pointer}
-  .cols{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
-  .goals{flex:1 1 320px;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-  .goal{display:flex;flex-direction:column;gap:5px;padding:9px 0;border-top:1px solid var(--line)}
-  .goal:first-of-type{border-top:0}
-  .goal .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-  .goal .mid{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-  .bar{height:6px;border-radius:3px;background:#eef1f2;overflow:hidden}
-  @media (prefers-color-scheme:dark){.bar{background:#2b323a}}
-  .bar i{display:block;height:6px;border-radius:3px}
-  .decide{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:10px}
-  .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-  .num{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
-  .num .v{font-size:20px;font-weight:500}
-  .num .n{font-size:12px;color:var(--muted)}
-  .seg{display:flex;background:#E4EAEC;border-radius:8px;padding:3px;gap:3px}
-  @media (prefers-color-scheme:dark){.seg{background:#242b32}}
-  .seg button{min-height:32px;padding:0 14px;border:0;border-radius:6px;font:inherit;font-size:13px;background:transparent;color:var(--muted);cursor:pointer}
-  .seg button[aria-selected="true"]{background:var(--card);color:var(--ink);font-weight:600}
-  .nd-chip{background:var(--nd-bg);color:var(--nd-fg);border:1px dashed var(--nd-bd)}
-  .nd .v{color:var(--nd-fg)}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-  table{width:100%;border-collapse:collapse;font-size:.86rem}
-  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
-  th{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
-  td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
-  .nd-board{background:var(--nd-bg);border:1px dashed var(--nd-bd);border-radius:12px;padding:28px;text-align:center;color:var(--nd-fg)}
-  .nd-board b{color:var(--ink)}
-  .err{background:var(--red-bg);color:var(--red-fg);border:1px solid var(--red-bd);border-radius:10px;padding:12px;font-size:.86rem}
-  .foot{font-family:var(--mono);font-size:11px;color:var(--muted)}
-  [hidden]{display:none!important}
+  .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--lbl)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-sizing:border-box;min-width:0}
+  button{font-family:inherit;cursor:pointer}
+
+  /* top bar */
+  .top{background:#10222B;color:#eaf2f3;display:flex;align-items:center;gap:12px;padding:10px clamp(14px,3vw,28px);flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px}
+  .logo{width:22px;height:22px;border-radius:6px;background:var(--teal);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700}
+  .top select{margin-left:auto;font-family:var(--body);font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #2b3b43;background:#172d36;color:#eaf2f3}
+  /* dept nav */
+  nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:10px clamp(14px,3vw,28px);background:#fff;border-bottom:1px solid var(--line)}
+  nav.tabs button{white-space:nowrap;border:0;background:transparent;color:#45555f;font-size:13.5px;font-weight:600;padding:8px 12px;border-radius:8px;min-height:40px}
+  nav.tabs button.on{background:#EAF2F3;color:var(--teal-d)}
+  nav.tabs button.nd{color:#9aa6ac}
+  nav.tabs button.nd::after{content:'•';margin-left:6px;color:#b9c2c6}
+
+  .page{padding:24px clamp(16px,3vw,48px) 56px}
+  .inner{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+
+  .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+  .head .l{display:flex;flex-direction:column;gap:8px;flex:1 1 560px;min-width:0}
+  h1.hl{margin:0;font-size:clamp(22px,3.4vw,32px);line-height:1.2;font-weight:600;text-wrap:balance}
+  .toggle{display:flex;background:#E4EAEC;border-radius:10px;padding:4px;gap:4px}
+  .toggle button{min-height:44px;padding:0 18px;border:0;border-radius:7px;font-size:15px;background:transparent;color:#33434F}
+  .toggle button.on{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(15,26,36,.12)}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .tile{padding:18px;display:flex;flex-direction:column;gap:8px}
+  .tile .v{font-size:24px;font-weight:500}
+  .tile .n{font-size:13px;color:var(--lbl)}
+  .tile.alert{background:var(--alert-bg);border-color:var(--alert-b)}
+  .tile.alert .lbl{color:var(--alert-l)} .tile.alert .v{color:var(--alert-v)} .tile.alert .n{color:var(--alert-l)}
+  .tile.nd{background:var(--nd-bg);border:1px dashed var(--nd-b)}
+  .tile.nd .v{color:#8b969c;font-size:14px;font-weight:600} .tile.nd .n{color:#9aa6ac}
+
+  .lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
+  .lc{padding:22px;display:flex;flex-direction:column}
+  .lc h2{margin:0;font-size:18px;font-weight:600}
+  .lc .csub{font-size:13px;color:var(--lbl);padding:4px 0 10px}
+  .lrow{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--row)}
+  .lrow .m{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .lrow .m .a{font-weight:600;font-size:15px}
+  .lrow .m .b{font-size:13px;color:var(--lbl)}
+  .lrow .val{flex:0 0 auto;font-size:14px;text-align:right;color:#33434F}
+  .lrow .val.alert{color:var(--alert-v);font-weight:500}
+  .lrow .val.hot{color:var(--teal);font-weight:600}
+  .lc.nd{background:var(--nd-bg);border-style:dashed}
+  .ndbox{color:#8b969c;font-size:14px;padding:14px 0}
+  .points{padding:22px;display:flex;flex-direction:column;gap:12px;background:var(--teal-tint);border-color:var(--teal-tint-b)}
+  .points .ph{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .points .ph h2{margin:0;font-size:18px;font-weight:600}
+  .pt{display:flex;gap:12px;align-items:flex-start}
+  .pt .num{flex:0 0 26px;height:26px;border-radius:13px;background:#fff;color:var(--teal-d);display:flex;align-items:center;justify-content:center;font-size:12px}
+  .pt .tx{font-size:15px;line-height:1.5}
+  .foot{margin:0;font-size:12px;color:var(--lbl)}
+  .back{align-self:flex-start;display:flex;align-items:center;gap:6px;min-height:40px;font-weight:600;font-size:14px}
+  .err{background:#fde8e0;color:#8a2b0c;border-radius:10px;padding:12px;font-size:14px}
 </style>
-<meta name="robots" content="noindex,nofollow">
 </head>
 <body>
-<div id="pwgate" style="position:fixed;inset:0;z-index:99999;background:#0f6e5c;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif">
+<div id="pwgate" style="position:fixed;inset:0;z-index:99999;background:#0B6E7F;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif">
   <form id="pwform" style="background:#fff;padding:28px 26px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.3);width:280px;text-align:center">
-    <div style="font-size:15px;font-weight:700;color:#1c1f26;margin-bottom:4px">Protected dashboard</div>
-    <div style="font-size:12px;color:#6b6f78;margin-bottom:14px">Enter the access password</div>
+    <div style="font-size:15px;font-weight:700;color:#0F1A24;margin-bottom:4px">Control Tower</div>
+    <div style="font-size:12px;color:#4A5A66;margin-bottom:14px">Enter the access password</div>
     <input id="pwin" type="password" autofocus style="width:100%;padding:9px 10px;border:1px solid #ccc;border-radius:7px;font-size:14px;box-sizing:border-box">
-    <div id="pwerr" style="color:#b5541f;font-size:11.5px;height:14px;margin:6px 0 0"></div>
-    <button type="submit" style="margin-top:10px;width:100%;padding:9px;border:0;border-radius:7px;background:#0f6e5c;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Open</button>
+    <div id="pwerr" style="color:#8A3C09;font-size:11.5px;height:14px;margin:6px 0 0"></div>
+    <button type="submit" style="margin-top:10px;width:100%;padding:9px;border:0;border-radius:7px;background:#0B6E7F;color:#fff;font-size:14px;font-weight:600">Open</button>
   </form>
 </div>
 <script>
 (function(){
-  var PW="tallybook@26";
   try{ if(sessionStorage.getItem("tsauth")==="1"){var g=document.getElementById("pwgate"); if(g) g.remove(); return;} }catch(e){}
-  function wire(){
-    var f=document.getElementById("pwform"); if(!f) return;
-    f.addEventListener("submit",function(ev){
-      ev.preventDefault();
-      var v=document.getElementById("pwin").value;
-      if(v==="tallybook@26"){ try{sessionStorage.setItem("tsauth","1");}catch(e){} var g=document.getElementById("pwgate"); if(g) g.remove(); }
-      else { document.getElementById("pwerr").textContent="Wrong password"; }
-    });
-  }
+  function wire(){var f=document.getElementById("pwform"); if(!f) return;
+    f.addEventListener("submit",function(ev){ev.preventDefault();
+      if(document.getElementById("pwin").value==="tallybook@26"){try{sessionStorage.setItem("tsauth","1");}catch(e){}var g=document.getElementById("pwgate");if(g)g.remove();}
+      else{document.getElementById("pwerr").textContent="Wrong password";}});}
   if(document.readyState!=="loading") wire(); else document.addEventListener("DOMContentLoaded",wire);
 })();
 </script>
 
-<header>
-  <div class="brand"><b>CT</b><span id="coname">Control Tower</span><span class="sub" id="synced"></span></div>
-  <nav id="tabs"></nav>
-  <div class="right"><span class="live"><span class="dot"></span>Live</span><select id="company"></select></div>
-</header>
-<main>
-  <div id="err"></div>
-  <div id="board"></div>
-  <div class="foot" id="stamp"></div>
-</main>
+<div class="top">
+  <div class="brand"><span class="logo">₹</span><span id="brand">Control Tower</span></div>
+  <select id="company" aria-label="Book"></select>
+</div>
+<nav class="tabs" id="tabs"></nav>
+
+<div class="page"><div class="inner" id="root">
+  <div class="lbl">Loading live books…</div>
+</div></div>
 
 <script>
 const BASE="https://shjqgktvdszjfpbxdnvb.supabase.co/rest/v1/rpc";
 const KEY="sb_publishable_elxnVCVa5_YYPYlmkCdodg_Kdixelr1";
 const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
-let CID="52209906-443a-4db6-ae42-3475c69c2866";
-let TAB="Main", PERIOD="daily";
-const inr=n=>'₹'+Math.round(n||0).toLocaleString('en-IN');
-const inrL=n=>'₹'+((n||0)/100000).toFixed(2)+' L';
+let CID="806a7176-ec76-4d83-a1e0-30987a46677a", BOOK="", PERIOD="daily";
+let DASH=null, AGE=[], OUT=[], PER={};
+
 const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-async function rpc(fn,body){const r=await fetch(BASE+'/'+fn,{method:'POST',headers:H,body:JSON.stringify(body)});if(!r.ok)throw new Error(fn+' '+r.status);return r.json();}
+const inr=n=>'₹'+Math.round(Math.abs(n||0)).toLocaleString('en-IN');
+const inrL=n=>'₹'+(Math.abs(n||0)/100000).toFixed(2)+' lakh';
+const ymd=d=>d.toISOString().slice(0,10);
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
 
-// tabs: [id, label, live?]  live=false => "No data" board
-const TABS=[["Main","Control Tower",true],["Accounts","Accounting & Collections",true],
-  ["Enquiry","Enquiry to Order",false],["MTD","Make to Deliver",false],
-  ["Admin","Admin & Compliance",false],["Phone","Phone brief",true]];
+async function rpc(fn,body){const r=await fetch(BASE+'/'+fn,{method:'POST',headers:H,body:JSON.stringify(body||{})});
+  if(!r.ok) throw new Error(fn+' HTTP '+r.status); return r.json();}
 
-let DATA={};
-function ymd(d){return d.toISOString().slice(0,10);}
-function windows(){
-  const t=new Date();
-  const today=ymd(t);
-  const w=new Date(t); w.setDate(w.getDate()-6);
-  const m=new Date(t.getFullYear(),t.getMonth(),1);
-  return {daily:[today,today],weekly:[ymd(w),today],monthly:[ymd(m),today]};
+const DEPTS=[
+  ['tower','Control Tower',false],
+  ['enquiry','Enquiry to Order',true],
+  ['accounts','Accounting and Collections',false],
+  ['make','Make to Deliver',true],
+  ['admin','Admin & Compliance',true],
+  ['whycash','Why cash was weak',false],
+  ['phone','Phone brief',false],
+  ['add','Add an entry',true]
+];
+let DEPT='accounts';
+
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = DEPTS.map(([k,label,nd])=>
+    `<button class="${k===DEPT?'on':''} ${nd?'nd':''}" onclick="pickDept('${k}')">${label}</button>`).join('');
 }
-function dso(o){let w=0,b=0;(o||[]).forEach(x=>{if(x.balance>0){w+=x.balance*(x.age_days||0);b+=x.balance;}});return b>0?Math.round(w/b):0;}
-function ageT(a){const t={a:0,b:0,c:0,d:0,over:0,tot:0};(a||[]).forEach(r=>{t.a+=+r.age_0_30||0;t.b+=+r.age_31_60||0;t.c+=+r.age_61_90||0;t.d+=+r.age_over_90||0;t.over+=+r.overdue||0;t.tot+=+r.total||0;});return t;}
+window.pickDept=k=>{DEPT=k;renderTabs();render();};
+window.pickPeriod=p=>{PERIOD=p;render();};
 
-// --- status helpers ---
-const PAL={red:'red',amber:'amb',green:'grn'};
-function line(st,dept,txt){const p=PAL[st];
-  return `<div class="line" style="background:var(--${p}-bg);border-color:var(--${p}-bd)">
-    <span class="tag word" style="background:var(--card);color:var(--${p}-fg)">${st==='red'?'Off track':st==='amber'?'At risk':'On track'}</span>
-    <span class="tag dept" style="background:rgba(255,255,255,.55);color:var(--muted)">${esc(dept)}</span>
-    <span class="txt">${txt}</span></div>`;}
-function ndLine(dept,what){
-  return `<div class="line" style="background:var(--nd-bg);border-color:var(--nd-bd);border-style:dashed">
-    <span class="tag word nd-chip">No data</span>
-    <span class="tag dept" style="background:var(--card);color:var(--muted)">${esc(dept)}</span>
-    <span class="txt" style="color:var(--nd-fg)">${esc(what)} — not in Tally</span></div>`;}
-
-function boardMain(){
-  const d=DATA.dash||{}, a=DATA.ageing||[], t=ageT(a), days=dso(DATA.outstanding);
-  const topOver=a.filter(r=>r.overdue>0).slice(0,4);
-  // Today in brief
-  let brief='';
-  brief+= days>30 ? line('red','Accounts',`Collections running <b>${days} days</b> vs 30-day terms`)
-                  : line('green','Accounts',`Collections within terms (${days} days)`);
-  brief+= t.over>0 ? line('red','Accounts',`<b>${inr(t.over)}</b> overdue · ${a.filter(r=>r.overdue>0).length} parties`)
-                   : line('green','Accounts','Nothing overdue');
-  brief+= (d.cash||0)<0 ? line('amber','Accounts',`Cash in books is negative: <b>${inr(d.cash)}</b>`)
-                        : line('green','Accounts',`Cash in hand <b>${inr(d.cash)}</b>`);
-  brief+= ndLine('Factory','Dispatches, production, on-time %');
-  brief+= ndLine('Sales','Quotes, orders, enquiries, leads');
-  brief+= ndLine('Admin','Statutory filings & compliance status');
-
-  // Decide now — from real overdue parties
-  let cards='';
-  topOver.forEach((r,i)=>{
-    cards+=`<div class="dcard" style="background:var(--red-bg);border-color:var(--red-bd)">
-      <div class="row"><span class="tag" style="background:var(--card);color:var(--red-fg);font-weight:500">Overdue</span>
-        <span class="tag" style="background:rgba(255,255,255,.55);color:var(--muted)">Accounts</span>
-        <span class="tag" style="background:rgba(255,255,255,.55);color:var(--ink)">${inr(r.overdue)}</span></div>
-      <span class="ttl">${esc(r.ledger_name)} is overdue ${inr(r.overdue)}</span>
-      <span class="why">Oldest bill ${r.oldest_bill_days||0} days · ${r.open_bills||0} open bill(s).</span>
-      <div class="row"><button class="act primary">Follow up</button><button class="act">Snooze</button></div>
-    </div>`;
-  });
-  cards+=`<div class="dcard" style="background:var(--nd-bg);border:1px dashed var(--nd-bd)">
-    <div class="row"><span class="tag nd-chip">No data</span><span class="tag" style="background:var(--card);color:var(--muted)">Sales / Factory</span></div>
-    <span class="ttl" style="color:var(--nd-fg)">Order-approval & production decisions</span>
-    <span class="why">Needs a sales / production feed — not in Tally.</span></div>`;
-
-  // Goals
-  const goals=[
-    ['Debtor days', days+' days', 'target under 30', Math.min(100,Math.round(30/Math.max(days,1)*100)), days>45?'red':days>30?'amb':'grn', true],
-    ['Overdue to clear', inr(t.over), t.over>0?'target ₹0':'clear', t.over>0?20:100, t.over>0?'red':'grn', true],
-    ['Receivables', inr(d.receivables), a.length+' parties', 60, 'amb', true],
-    ['November orders', 'No data', 'needs sales feed', 0, 'nd', false],
-    ['Metres this week', 'No data', 'needs factory feed', 0, 'nd', false],
-    ['On-time dispatch', 'No data', 'needs factory feed', 0, 'nd', false],
-    ['Statutory filings', 'No data', 'needs compliance feed', 0, 'nd', false]
-  ];
-  let goalsH='';
-  goals.forEach(([lab,val,tgt,pct,st,ok])=>{
-    const c = st==='nd' ? 'nd' : st;
-    goalsH+=`<div class="goal ${ok?'':'nd'}">
-      <div class="top"><span style="font-weight:600;font-size:13px">${lab}</span>
-        <span class="tag ${ok?'':'nd-chip'}" style="${ok?`background:var(--${c}-bg);color:var(--${c}-fg)`:''}">${ok?(st==='grn'?'On track':st==='amb'?'At risk':'Off track'):'No data'}</span></div>
-      <div class="mid"><span class="mono" style="font-size:15px">${val}</span><span style="font-size:12px;color:var(--muted)">${tgt}</span></div>
-      <div class="bar"><i style="width:${pct}%;background:${ok?`var(--${c}-fg)`:'var(--nd-bd)'}"></i></div></div>`;
-  });
-
-  // Key numbers (period)
-  const p=DATA.period&&DATA.period[PERIOD]||{};
-  const periodNums=[
-    ['Sales', inr(p.sales), 'invoiced', true],
-    ['Collected', inr(p.receipts), 'receipts', true],
-    ['Paid out', inr(p.payments), 'payments', true],
-    ['Vouchers', (p.vouchers||0).toLocaleString('en-IN'), 'entries', true],
-    ['Outstanding', inr(d.receivables), a.length+' parties', true],
-    ['Overdue 60+', inr(t.c+t.d), 'past 60 days', true],
-    ['Metres produced', 'No data', 'needs factory feed', false],
-    ['Enquiries / leads', 'No data', 'needs sales feed', false]
-  ];
-  let numsH='';
-  periodNums.forEach(([lab,val,note,ok])=>{
-    numsH+=`<div class="num ${ok?'':'nd'}" style="${ok?'':'border-style:dashed'}">
-      <div class="row" style="display:flex;justify-content:space-between"><span class="lbl">${lab}</span>${ok?'':'<span class="tag nd-chip">No data</span>'}</div>
-      <span class="mono v">${val}</span><span class="n">${note}</span></div>`;
-  });
-  const segs=['daily','weekly','monthly'].map(k=>`<button role="tab" aria-selected="${k===PERIOD}" data-p="${k}">${k==='daily'?'Today':k==='weekly'?'This week':'This month'}</button>`).join('');
-
-  return `
-  <section><div class="sec-head"><h2>Today in brief</h2><span class="hint">Live accounting · operational feeds pending</span></div>
-    <div class="brief">${brief}</div></section>
-  <section class="cols">
-    <div class="decide"><div class="sec-head"><h2>Decide now</h2>
-      <span><span class="tag" style="background:var(--red-bg);color:var(--red-fg)">${topOver.length} overdue</span></span></div>
-      <div class="cards">${cards}</div></div>
-    <aside class="goals"><h2 style="margin-bottom:6px">Goals</h2>${goalsH}</aside>
-  </section>
-  <section><div class="sec-head"><h2>Key numbers</h2><div class="seg" id="seg">${segs}</div></div>
-    <div class="nums">${numsH}</div></section>`;
-}
-
-function boardAccounts(){
-  const a=DATA.ageing||[],o=DATA.outstanding||[],t=ageT(a);
-  return `<section class="panel"><h2>Party ageing</h2>
-    <table><thead><tr><th>Party</th><th class="r">Total</th><th class="r">0-30</th><th class="r">31-60</th><th class="r">61-90</th><th class="r">90+</th><th class="r">Overdue</th></tr></thead><tbody>
-    ${a.slice(0,30).map(r=>`<tr><td>${esc(r.ledger_name)}</td><td class="r">${inr(r.total)}</td><td class="r">${inr(r.age_0_30)}</td><td class="r">${inr(r.age_31_60)}</td><td class="r">${inr(r.age_61_90)}</td><td class="r">${inr(r.age_over_90)}</td><td class="r">${inr(r.overdue)}</td></tr>`).join('')||'<tr><td colspan=7 style="color:var(--muted)">No open receivables</td></tr>'}
-    </tbody></table></section>
-  <section class="panel" style="margin-top:16px"><h2>Open bills (most overdue first)</h2>
-    <table><thead><tr><th>Party</th><th>Bill</th><th>Due</th><th class="r">Days overdue</th><th class="r">Amount</th></tr></thead><tbody>
-    ${o.slice(0,25).map(b=>`<tr><td>${esc(b.ledger_name)}</td><td>${esc(b.bill_name)||'—'}</td><td>${esc(b.due_date)||'—'}</td><td class="r">${b.days_overdue||0}</td><td class="r">${inr(b.balance)}</td></tr>`).join('')||'<tr><td colspan=5 style="color:var(--muted)">No open bills</td></tr>'}
-    </tbody></table></section>`;
-}
-function boardPhone(){
-  const d=DATA.dash||{},t=ageT(DATA.ageing),days=dso(DATA.outstanding),p=DATA.period&&DATA.period.monthly||{};
-  const big=(l,v,c)=>`<div class="num" style="margin-bottom:10px"><span class="lbl">${l}</span><span class="mono v" style="font-size:24px;${c||''}">${v}</span></div>`;
-  return `<div style="max-width:380px;margin:0 auto">
-    ${big('Receivables',inr(d.receivables))}
-    ${big('Overdue',inr(t.over),'color:var(--red-fg)')}
-    ${big('Collection days',days+' vs 30')}
-    ${big('Collected this month',inr(p.receipts))}
-    ${big('Cash in hand',inr(d.cash))}
-  </div>`;
-}
-function ndBoard(label,needs){
-  return `<div class="nd-board"><div style="font-size:16px;margin-bottom:8px"><b>${esc(label)}</b></div>
-    <div>No data — this isn't in Tally.</div>
-    <div style="margin-top:8px;font-size:13px">Needs a feed from: ${esc(needs)}.</div></div>`;
-}
-const ND={Enquiry:['Enquiry to Order','a sales / CRM system (quotes, orders, enquiries, leads)'],
-          MTD:['Make to Deliver','a production / dispatch system (metres, jobs, on-time %)'],
-          Admin:['Admin & Compliance','a compliance tracker (filings, statutory due dates)']};
-
-function draw(){
-  const b=document.getElementById('board');
-  if(TAB==='Main')b.innerHTML=boardMain();
-  else if(TAB==='Accounts')b.innerHTML=boardAccounts();
-  else if(TAB==='Phone')b.innerHTML=boardPhone();
-  else if(ND[TAB])b.innerHTML=ndBoard(ND[TAB][0],ND[TAB][1]);
-  // wire period toggle
-  const seg=document.getElementById('seg');
-  if(seg)seg.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{PERIOD=btn.dataset.p;draw();});
-}
-function drawTabs(){
-  document.getElementById('tabs').innerHTML=TABS.map(([id,label,live])=>
-    `<button data-id="${id}" aria-current="${id===TAB}">${label}${live?'':'<span class="nd">●</span>'}</button>`).join('');
-  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.id;try{location.hash=TAB}catch(e){}; drawTabs(); draw();});
-}
 async function loadCompanies(){
   try{
     const list=await rpc('tally_company_list',{});
-    if(!list.length)return;
-    let saved=null;try{saved=localStorage.getItem('ct_cid')}catch(e){}
-    if(saved&&list.some(c=>c.id===saved))CID=saved; else if(!list.some(c=>c.id===CID))CID=list[0].id;
+    if(!list.length) return;
+    let saved=null; try{saved=localStorage.getItem('tallysync_cid');}catch(e){}
+    CID=(saved&&list.some(c=>c.id===saved))?saved:list[0].id;
     const sel=document.getElementById('company');
-    sel.innerHTML=list.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    sel.innerHTML=list.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
     sel.value=CID;
-    sel.onchange=()=>{CID=sel.value;try{localStorage.setItem('ct_cid',CID)}catch(e){}; load();};
+    sel.onchange=()=>{CID=sel.value;try{localStorage.setItem('tallysync_cid',CID);}catch(e){}loadBook();};
   }catch(e){}
 }
-async function load(){
+
+async function loadBook(){
+  document.getElementById('root').innerHTML='<div class="lbl">Loading live books…</div>';
   try{
-    const W=windows();
-    const [dash,ageing,outstanding,pd,pw,pm]=await Promise.all([
+    const today=new Date();
+    const win={
+      daily:[ymd(today),ymd(today)],
+      weekly:[ymd(addDays(today,-6)),ymd(today)],
+      monthly:[ymd(addDays(today,-29)),ymd(today)]
+    };
+    const q90=[ymd(addDays(today,-89)),ymd(today)];
+    const [dash,age,out,pd,pw,pm,p90]=await Promise.all([
       rpc('tally_dashboard',{p_company_id:CID}),
-      rpc('tally_ageing',{p_company_id:CID,p_limit:100}),
+      rpc('tally_ageing',{p_company_id:CID,p_limit:200}),
       rpc('tally_outstanding',{p_company_id:CID,p_limit:200}),
-      rpc('tally_period',{p_company_id:CID,p_from:W.daily[0],p_to:W.daily[1]}),
-      rpc('tally_period',{p_company_id:CID,p_from:W.weekly[0],p_to:W.weekly[1]}),
-      rpc('tally_period',{p_company_id:CID,p_from:W.monthly[0],p_to:W.monthly[1]})
+      rpc('tally_period',{p_company_id:CID,p_from:win.daily[0],p_to:win.daily[1]}),
+      rpc('tally_period',{p_company_id:CID,p_from:win.weekly[0],p_to:win.weekly[1]}),
+      rpc('tally_period',{p_company_id:CID,p_from:win.monthly[0],p_to:win.monthly[1]}),
+      rpc('tally_period',{p_company_id:CID,p_from:q90[0],p_to:q90[1]})
     ]);
-    DATA={dash,ageing,outstanding,period:{daily:pd,weekly:pw,monthly:pm}};
-    document.getElementById('err').innerHTML='';
-    document.getElementById('coname').textContent=(dash&&dash.company)||'Control Tower';
-    document.getElementById('synced').textContent=' · '+new Date().toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' · Tally synced';
-    draw();
-    document.getElementById('stamp').textContent='Live from Supabase (Tally sync) · accounting is live · operational feeds not connected';
-  }catch(e){document.getElementById('err').innerHTML='<div class="err">Could not load: '+e.message+'</div>';}
+    DASH=dash; AGE=age||[]; OUT=out||[]; PER={daily:pd,weekly:pw,monthly:pm,q90:p90,win};
+    BOOK=dash.company||'Book';
+    document.getElementById('brand').textContent=BOOK+' · Control Tower';
+    render();
+  }catch(e){
+    document.getElementById('root').innerHTML='<div class="err">Could not reach Supabase: '+esc(e.message)+'</div>';
+  }
 }
-TAB=(location.hash||'#Main').slice(1); if(!TABS.some(t=>t[0]===TAB))TAB='Main';
-drawTabs();
-(async()=>{await loadCompanies(); load();})();
-setInterval(load,60000);
+
+// ---- derived accounting numbers ----
+function derive(){
+  const sum=(a,f)=>a.reduce((s,x)=>s+(+x[f]||0),0);
+  const REC=AGE.filter(a=>(+a.total||0)>0);              // receivables only (drop advances)
+  const todayStr=ymd(new Date());
+  const overdue60=sum(REC,'age_61_90')+sum(REC,'age_over_90');
+  const totalOut=sum(REC,'total');                        // single source = bill-wise ageing
+  const parties=REC.length;
+  const dueToday=OUT.filter(b=>b.due_date===todayStr&&(+b.balance||0)>0);
+  const dueTodaySum=dueToday.reduce((s,b)=>s+(+b.balance||0),0);
+  const next30=addDays(new Date(),30), nowD=new Date();
+  const comingIn=OUT.filter(b=>b.due_date&&(+b.balance||0)>0&&new Date(b.due_date)>=nowD&&new Date(b.due_date)<=next30)
+                    .reduce((s,b)=>s+(+b.balance||0),0);
+  const overdueParties=REC.filter(a=>(+a.overdue||0)>0).sort((a,b)=>b.overdue-a.overdue);
+  const openBills=OUT.filter(b=>(+b.days_overdue||0)>0&&(+b.balance||0)>0).slice(0,6);
+  const buckets=[
+    ['0–30 days',sum(REC,'age_0_30')],['31–60 days',sum(REC,'age_31_60')],
+    ['61–90 days',sum(REC,'age_61_90')],['Over 90 days',sum(REC,'age_over_90')]
+  ];
+  const bigBal=[...REC].sort((a,b)=>b.total-a.total).slice(0,6);
+  const sales90=Math.abs(+(PER.q90&&PER.q90.sales)||0);
+  const dso=sales90>0?Math.round(totalOut/(sales90/90)):null;
+  return {overdue60,totalOut,parties,dueToday,dueTodaySum,comingIn,overdueParties,openBills,buckets,bigBal,dso,sales90};
+}
+
+const tile=(label,val,note,kind)=>{
+  if(kind==='nd') return `<div class="card tile nd"><span class="lbl">${label}</span><span class="v">No data</span><span class="n">not in Tally</span></div>`;
+  return `<div class="card tile ${kind==='alert'?'alert':''}"><span class="lbl">${label}</span><span class="v mono">${val}</span><span class="n">${note||''}</span></div>`;
+};
+function listCard(title,sub,rows){
+  const body=rows.length?rows.map(r=>
+    `<div class="lrow"><div class="m"><span class="a">${esc(r.main)}</span><span class="b">${esc(r.sub)}</span></div>`+
+    `<span class="val mono ${r.kind||''}">${esc(r.val)}</span>`+(r.action?`<button type="button" style="flex:0 0 auto;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:13px;font-weight:600">${esc(r.action)}</button>`:'')+`</div>`).join('')
+    :'<div class="ndbox">Nothing here right now.</div>';
+  return `<div class="card lc"><h2>${esc(title)}</h2><span class="csub">${esc(sub)}</span>${body}</div>`;
+}
+const ndCard=(title,why)=>`<div class="card lc nd"><h2>${esc(title)}</h2><span class="csub">Needs a system outside Tally</span><div class="ndbox">No data – not in Tally. ${esc(why)}</div></div>`;
+function pointsCard(pts){
+  return `<section class="card points"><div class="ph"><h2>Talking points for this review</h2><span class="lbl" style="color:var(--teal-d)">Built live from the numbers above</span></div>`+
+    pts.map((t,i)=>`<div class="pt"><span class="num mono">${i+1}</span><span class="tx">${esc(t)}</span></div>`).join('')+`</section>`;
+}
+
+function accountsBoard(){
+  const D=derive();
+  const when={daily:'today',weekly:'last 7 days',monthly:'this month'}[PERIOD];
+  const w=PER.win[PERIOD];
+  const coll=Math.abs(+(PER[PERIOD]&&PER[PERIOD].receipts)||0);
+  const nP=PER[PERIOD]?(PER[PERIOD].vouchers||0):0;
+  let headline, tiles, cards, pts;
+
+  if(PERIOD==='daily'){
+    headline = D.dueToday.length
+      ? `${D.dueToday.length} bill${D.dueToday.length>1?'s':''} fall due today — ₹${(D.dueTodaySum/100000).toFixed(1)} lakh. ${D.overdueParties.length} parties are already overdue.`
+      : `${D.overdueParties.length} parties are overdue. ₹${(D.overdue60/100000).toFixed(1)} lakh of it is past 60 days.`;
+    tiles=[
+      tile('Cash collected',inr(coll),nP+' entries today'),
+      tile('Due today',inr(D.dueTodaySum),D.dueToday.length+' bills',D.dueTodaySum>0?'alert':''),
+      tile('Reminders sent','','','nd'),
+      tile('Receipts to check','','','nd'),
+      tile('Red-flag orders','','','nd')
+    ];
+    cards=[
+      listCard('Overdue parties — chase first','Largest overdue balance first',
+        D.overdueParties.slice(0,6).map(a=>({main:a.ledger_name,sub:inr(a.total)+' total · oldest '+(a.oldest_bill_days||0)+' days',val:inr(a.overdue),kind:'alert',action:'Call'}))),
+      listCard('Open bills — most overdue','Bill-wise, from Tally',
+        D.openBills.map(b=>({main:b.ledger_name,sub:(b.bill_name||'On account')+' · due '+(b.due_date||'—'),val:(b.days_overdue||0)+' days',kind:'alert'})))
+    ];
+    pts=[];
+    if(D.overdueParties[0]) pts.push(`${D.overdueParties[0].ledger_name} owes ${inr(D.overdueParties[0].overdue)} overdue; oldest bill is ${D.overdueParties[0].oldest_bill_days||0} days old.`);
+    pts.push(`${inr(D.overdue60)} across ${D.overdueParties.length} parties is overdue past 60 days.`);
+    pts.push('Reminders, receipt-matching and new-order red-flags need the CRM/bank system — not in Tally yet.');
+  }
+  else if(PERIOD==='weekly'){
+    headline=`${inr(coll)} collected this week. ${inr(D.overdue60)} is overdue past 60 days.`;
+    tiles=[
+      tile('Collected',inr(coll),nP+' entries'),
+      tile('Overdue past 60 days',inr(D.overdue60),D.overdueParties.length+' parties',D.overdue60>0?'alert':''),
+      tile('Coming in · next 30 days',inr(D.comingIn),'from bill due-dates'),
+      tile('Cash out · next 30 days','','','nd'),
+      tile('Escalated','','','nd')
+    ];
+    cards=[
+      listCard('Overdue past 60 days','Largest first',
+        D.overdueParties.slice(0,6).map(a=>({main:a.ledger_name,sub:inr(a.total)+' total',val:(a.oldest_bill_days||0)+' days',kind:'alert',action:'Call'}))),
+      listCard('Open bills — most overdue','Bill-wise, from Tally',
+        D.openBills.map(b=>({main:b.ledger_name,sub:(b.bill_name||'On account'),val:inr(b.balance),kind:'alert'})))
+    ];
+    pts=[`${inr(coll)} came in over the last 7 days across ${nP} entries.`,
+         `${inr(D.overdue60)} is overdue past 60 days — chase the largest balances first.`,
+         'Cash-out forecast and escalation tracking need the payables/CRM system — not in Tally.'];
+  }
+  else{ // monthly
+    headline = D.dso!=null
+      ? `Collections run about ${D.dso} days against your credit terms.`
+      : `${inr(D.totalOut)} is outstanding across ${D.parties} parties.`;
+    tiles=[
+      tile('Total outstanding',inr(D.totalOut),D.parties+' parties'),
+      tile('Debtor days',D.dso!=null?String(D.dso):'',D.dso!=null?'rough, from last 90 days’ sales':'', D.dso!=null?(D.dso>45?'alert':''):'nd'),
+      tile('Overdue past 60 days',inr(D.overdue60),D.overdueParties.length+' parties',D.overdue60>0?'alert':''),
+      tile('Collected · last 30 days',inr(Math.abs(+(PER.monthly.receipts)||0)),(PER.monthly.vouchers||0)+' entries'),
+      tile('Material cost %','','','nd')
+    ];
+    cards=[
+      listCard('Ageing buckets','Whole book, from Tally',
+        D.buckets.map(b=>({main:b[0],sub:'',val:inr(b[1]),kind:b[0].indexOf('90')>-1?'alert':''}))),
+      listCard('Biggest balances','Top parties by total due',
+        D.bigBal.map(a=>({main:a.ledger_name,sub:(a.open_bills||0)+' open bills',val:inr(a.total)})))
+    ];
+    pts=[`${inr(D.totalOut)} is outstanding across ${D.parties} parties`+(D.dso!=null?`, about ${D.dso} debtor-days.`:'.'),
+         `${inr(D.overdue60)} has aged past 60 days.`,
+         'Cost-head %, grades and material cost need the costing/CRM data — not in Tally.'];
+  }
+
+  return `
+    <a class="back" href="#" onclick="pickDept('tower');return false;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>All departments</a>
+    <div class="head">
+      <div class="l">
+        <span class="lbl" style="color:var(--teal)">Accounting and Collections · ${when}</span>
+        <h1 class="hl">${esc(headline)}</h1>
+        <span class="mono" style="font-size:12px;color:var(--lbl)">Tally · live · window ${w[0]} to ${w[1]}</span>
+      </div>
+      <div class="toggle" role="tablist">
+        ${['daily','weekly','monthly'].map(p=>`<button role="tab" class="${p===PERIOD?'on':''}" onclick="pickPeriod('${p}')">${p[0].toUpperCase()+p.slice(1)}</button>`).join('')}
+      </div>
+    </div>
+    <section class="tiles">${tiles.join('')}</section>
+    <section class="lists">${cards.join('')}</section>
+    ${pointsCard(pts)}
+    <p class="foot">Live from Tally via Supabase · amounts in ₹ · tiles marked “No data” need a system outside Tally (CRM, bank-matching, costing).</p>`;
+}
+
+function towerBoard(){
+  const D=derive();
+  const neg=(+DASH.cash||0)<0;
+  return `
+    <div class="head"><div class="l">
+      <span class="lbl" style="color:var(--teal)">Control Tower · ${esc(BOOK)}</span>
+      <h1 class="hl">${inr(D.totalOut)} outstanding · ${inr(D.overdue60)} overdue past 60 days.</h1>
+      <span class="mono" style="font-size:12px;color:var(--lbl)">Pick a department below</span>
+    </div></div>
+    <section class="tiles">
+      ${tile('Receivables',inr(D.totalOut),D.parties+' parties')}
+      ${tile('Overdue 60+ days',inr(D.overdue60),D.overdueParties.length+' parties',D.overdue60>0?'alert':'')}
+      ${tile('Cash in hand',inr(DASH.cash),'as per books',neg?'alert':'')}
+      ${tile('Card dues',inrL(DASH.card_dues),(DASH.cards||[]).length+' cards')}
+      ${tile('Tracked',(DASH.ledger_count||0)+' ledgers',(DASH.voucher_count||0).toLocaleString('en-IN')+' vouchers')}
+    </section>
+    <section class="lists">
+      <div class="card lc" onclick="pickDept('accounts')" style="cursor:pointer">
+        <h2>Accounting and Collections →</h2><span class="csub">Live: collections, ageing, overdue, open bills</span>
+        ${D.overdueParties.slice(0,4).map(a=>`<div class="lrow"><div class="m"><span class="a">${esc(a.ledger_name)}</span><span class="b">${inr(a.total)} total</span></div><span class="val mono alert">${inr(a.overdue)} overdue</span></div>`).join('')}
+      </div>
+      <div class="card lc" onclick="pickDept('whycash')" style="cursor:pointer">
+        <h2>Why cash was weak →</h2><span class="csub">Live: where the money went</span>
+        ${(DASH.expenses||[]).slice(0,4).map(e=>`<div class="lrow"><div class="m"><span class="a">${esc(e.name)}</span></div><span class="val mono">${inr(e.amt)}</span></div>`).join('')}
+      </div>
+    </section>
+    <section class="tiles">
+      ${ndCard('Enquiry to Order','Needs the CRM / IndiaMART / WhatsApp lead data.')}
+      ${ndCard('Make to Deliver','Needs the production & dispatch system.')}
+    </section>`;
+}
+
+function whyCashBoard(){
+  const D=derive();
+  return `
+    <a class="back" href="#" onclick="pickDept('tower');return false;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>All departments</a>
+    <div class="head"><div class="l">
+      <span class="lbl" style="color:var(--teal)">Why cash was weak · ${esc(BOOK)}</span>
+      <h1 class="hl">${inr(D.totalOut)} is stuck in receivables; ${inr(D.overdue60)} is past 60 days.</h1>
+      <span class="mono" style="font-size:12px;color:var(--lbl)">Tally · live</span>
+    </div></div>
+    <section class="tiles">
+      ${tile('Stuck in receivables',inr(D.totalOut),D.parties+' parties',D.totalOut>0?'alert':'')}
+      ${tile('Cash in hand',inr(DASH.cash),'as per books',(+DASH.cash||0)<0?'alert':'')}
+      ${tile('Overdue 60+ days',inr(D.overdue60),'the slow money',D.overdue60>0?'alert':'')}
+    </section>
+    <section class="lists">
+      ${listCard('Where the money went','Biggest expense heads, from Tally',(DASH.expenses||[]).slice(0,8).map(e=>({main:e.name,sub:'',val:inr(e.amt)})))}
+      ${listCard('Who owes you','Biggest balances',D.bigBal.map(a=>({main:a.ledger_name,sub:(a.open_bills||0)+' bills',val:inr(a.total),kind:'alert'})))}
+    </section>
+    ${pointsCard([`${inr(D.totalOut)} is tied up in unpaid bills — that is the main drag on cash.`,`${inr(D.overdue60)} has aged past 60 days.`,'Collect the oldest, biggest balances first to free cash.'])}`;
+}
+
+function phoneBoard(){
+  const D=derive();
+  return `
+    <a class="back" href="#" onclick="pickDept('tower');return false;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>All departments</a>
+    <div class="head"><div class="l">
+      <span class="lbl" style="color:var(--teal)">Phone brief · ${esc(BOOK)}</span>
+      <h1 class="hl">One-screen summary</h1>
+    </div></div>
+    <section class="tiles" style="grid-template-columns:1fr">
+      ${tile('Receivables',inr(D.totalOut),D.parties+' parties')}
+      ${tile('Overdue 60+ days',inr(D.overdue60),D.overdueParties.length+' parties',D.overdue60>0?'alert':'')}
+      ${tile('Cash in hand',inr(DASH.cash),'as per books',(+DASH.cash||0)<0?'alert':'')}
+    </section>
+    ${listCard('Call these first','Most overdue',D.overdueParties.slice(0,5).map(a=>({main:a.ledger_name,sub:inr(a.total)+' total',val:inr(a.overdue),kind:'alert',action:'Call'})))}`;
+}
+
+function ndBoard(name,why){
+  return `
+    <a class="back" href="#" onclick="pickDept('tower');return false;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>All departments</a>
+    <div class="head"><div class="l">
+      <span class="lbl" style="color:var(--lbl)">${esc(name)} · ${esc(BOOK)}</span>
+      <h1 class="hl">No data — not in Tally.</h1>
+      <span class="mono" style="font-size:12px;color:var(--lbl)">${esc(why)}</span>
+    </div></div>
+    <div class="card lc nd"><div class="ndbox">This board needs a system outside Tally. Once ${esc(name)} data is connected, it will fill in here automatically — the layout is ready.</div></div>`;
+}
+
+function render(){
+  if(!DASH){return;}
+  renderTabs();
+  let html;
+  if(DEPT==='accounts') html=accountsBoard();
+  else if(DEPT==='tower') html=towerBoard();
+  else if(DEPT==='whycash') html=whyCashBoard();
+  else if(DEPT==='phone') html=phoneBoard();
+  else if(DEPT==='enquiry') html=ndBoard('Enquiry to Order','Needs the CRM / IndiaMART / WhatsApp lead data.');
+  else if(DEPT==='make') html=ndBoard('Make to Deliver','Needs the production and dispatch system.');
+  else if(DEPT==='admin') html=ndBoard('Admin & Compliance','Needs the filing/compliance calendar.');
+  else if(DEPT==='add') html=ndBoard('Add an entry','This writes data back — the current setup is read-only.');
+  else html=accountsBoard();
+  document.getElementById('root').innerHTML=html;
+}
+
+(async()=>{renderTabs();await loadCompanies();await loadBook();})();
+setInterval(loadBook,120000);
 </script>
 </body></html>
