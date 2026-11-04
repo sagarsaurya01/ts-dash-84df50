@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ZZTEST — Live Books</title>
+<style>
+  :root{
+    --bg:#f4f2ec; --panel:#fffdf8; --ink:#1c1f26; --muted:#6b6f78;
+    --line:#e2ddd2; --accent:#0f6e5c; --accent-soft:#d7ebe5;
+    --warn:#b5541f; --pos:#0f6e5c;
+    --display:"Spectral",Georgia,serif; --body:"Libre Franklin",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#15171c; --panel:#1e2128; --ink:#edeae2; --muted:#9a9ea8;
+    --line:#2d313a; --accent:#58c9ae; --accent-soft:#1c3a34; --warn:#e58a53; color-scheme:dark;
+  }}
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:26px 18px}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(1.5rem,4vw,2.2rem);margin:0}
+  .sub{color:var(--muted);font-size:.88rem;margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--accent);
+        text-transform:uppercase;letter-spacing:.06em;background:var(--accent-soft);padding:3px 9px;border-radius:999px}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:p 1.8s infinite}
+  @keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+  select{font-family:var(--body);font-size:.85rem;padding:3px 8px;border-radius:8px;
+         border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin:18px 0}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .tile .label{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .tile .val{font-family:var(--mono);font-size:1.5rem;font-weight:600;margin-top:6px;font-variant-numeric:tabular-nums}
+  .tile .meta{font-size:.78rem;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:720px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0;margin-bottom:16px}
+  .panel h2{font-family:var(--display);font-weight:600;font-size:1.12rem;margin:0 0 12px}
+  .bar-row{display:grid;grid-template-columns:1fr auto;gap:3px 10px;align-items:center;margin-bottom:10px}
+  .bar-row .nm{font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bar-row .amt{font-family:var(--mono);font-size:.82rem}
+  .track{grid-column:1/-1;height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+  .fill{height:100%;border-radius:4px;background:var(--warn)}.fill.g{background:var(--accent)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+  th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .foot{color:var(--muted);font-size:.8rem;margin-top:22px;text-align:center}
+  .err{background:#fde8e0;color:#8a2b0c;border-radius:10px;padding:12px;margin:12px 0;font-size:.88rem}
+  @media (prefers-color-scheme:dark){.err{background:#3a1d12;color:#f0b49a}}
+</style><meta name="robots" content="noindex,nofollow">
+</head>
+<body>
+<div id="pwgate" style="position:fixed;inset:0;z-index:99999;background:#0f6e5c;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif">
+  <form id="pwform" style="background:#fff;padding:28px 26px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.3);width:280px;text-align:center">
+    <div style="font-size:15px;font-weight:700;color:#1c1f26;margin-bottom:4px">Protected dashboard</div>
+    <div style="font-size:12px;color:#6b6f78;margin-bottom:14px">Enter the access password</div>
+    <input id="pwin" type="password" autofocus style="width:100%;padding:9px 10px;border:1px solid #ccc;border-radius:7px;font-size:14px;box-sizing:border-box">
+    <div id="pwerr" style="color:#b5541f;font-size:11.5px;height:14px;margin:6px 0 0"></div>
+    <button type="submit" style="margin-top:10px;width:100%;padding:9px;border:0;border-radius:7px;background:#0f6e5c;color:#fff;font-size:14px;font-weight:600;cursor:pointer">Open</button>
+  </form>
+</div>
+<script>
+(function(){
+  var PW="tallybook@26";
+  try{ if(sessionStorage.getItem("tsauth")==="1"){var g=document.getElementById("pwgate"); if(g) g.remove(); return;} }catch(e){}
+  function wire(){
+    var f=document.getElementById("pwform"); if(!f) return;
+    f.addEventListener("submit",function(ev){
+      ev.preventDefault();
+      var v=document.getElementById("pwin").value;
+      if(v==="tallybook@26"){ try{sessionStorage.setItem("tsauth","1");}catch(e){} var g=document.getElementById("pwgate"); if(g) g.remove(); }
+      else { document.getElementById("pwerr").textContent="Wrong password"; }
+    });
+  }
+  if(document.readyState!=="loading") wire(); else document.addEventListener("DOMContentLoaded",wire);
+})();
+</script>
+
+<div class="wrap">
+  <header>
+    <h1 id="title">Loading…</h1>
+    <div class="sub">
+      <span class="live"><span class="dot"></span>Live from Supabase</span>
+      <label for="company" style="color:var(--muted)">Book:</label>
+      <select id="company"></select>
+      <span id="stamp"></span>
+    </div>
+  </header>
+  <div id="err"></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="grid">
+    <section class="panel"><h2>Where the money went</h2><div id="expenses"></div></section>
+    <section class="panel"><h2>Card dues</h2><div id="cards"></div></section>
+  </div>
+  <div class="grid">
+    <section class="panel"><h2>Who owes you</h2>
+      <table><thead><tr><th>Party</th><th class="r">Amount</th></tr></thead><tbody id="debtors"></tbody></table></section>
+    <section class="panel"><h2>What's coming in</h2>
+      <table><thead><tr><th>Ledger</th><th class="r">Amount</th></tr></thead><tbody id="income"></tbody></table></section>
+  </div>
+  <section class="panel" style="margin-top:16px">
+    <h2>Who viewed what</h2>
+    <div class="cap" style="color:var(--muted);font-size:.78rem;margin-bottom:12px">Every query run through the MCP (all books)</div>
+    <table>
+      <thead><tr><th>When</th><th>Who</th><th>Looked at</th><th>Book</th><th>Result</th></tr></thead>
+      <tbody id="activity"></tbody>
+    </table>
+  </section>
+
+  <div class="foot">Reads live from your Supabase project · refreshes every 60s · amounts in ₹</div>
+</div>
+
+<script>
+const BASE = "https://shjqgktvdszjfpbxdnvb.supabase.co/rest/v1/rpc";
+const KEY  = "sb_publishable_elxnVCVa5_YYPYlmkCdodg_Kdixelr1";
+let   CID  = "806a7176-ec76-4d83-a1e0-30987a46677a";   // default until the list loads
+const H    = {'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
+const inr  = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const inrL = n => '₹' + (n/100000).toFixed(2) + ' L';
+
+function bars(el, data, cls){
+  if(!data || !data.length){document.getElementById(el).innerHTML='<div class="nm" style="color:var(--muted)">None</div>';return;}
+  const max = Math.max(...data.map(d=>d.amt));
+  document.getElementById(el).innerHTML = data.map(d=>
+    `<div class="bar-row"><span class="nm">${d.name}</span><span class="amt">${inr(d.amt)}</span>`+
+    `<span class="track"><span class="fill ${cls}" style="width:${(d.amt/max*100).toFixed(1)}%"></span></span></div>`).join('');
+}
+function rows(el, data){
+  document.getElementById(el).innerHTML = (data||[]).map(d=>
+    `<tr><td>${d.name}</td><td class="r">${inr(d.amt)}</td></tr>`).join('') ||
+    '<tr><td colspan="2" style="color:var(--muted)">None</td></tr>';
+}
+
+async function loadCompanies(){
+  try{
+    const r = await fetch(BASE+"/tally_company_list", {method:'POST', headers:H, body:'{}'});
+    if(!r.ok) return;
+    const list = await r.json();
+    if(!list.length) return;
+    const sel = document.getElementById('company');
+    let saved = null; try{ saved = localStorage.getItem('tallysync_cid'); }catch(e){}
+    if(saved && list.some(c=>c.id===saved)) CID = saved; else CID = list[0].id;
+    sel.innerHTML = list.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.value = CID;
+    sel.onchange = () => { CID = sel.value; try{localStorage.setItem('tallysync_cid',CID);}catch(e){} load(); };
+  }catch(e){}
+}
+
+async function load(){
+  try{
+    const r = await fetch(BASE+"/tally_dashboard", {method:'POST', headers:H,
+      body: JSON.stringify({p_company_id: CID})});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d = await r.json();
+    document.getElementById('err').innerHTML='';
+    document.getElementById('title').textContent = (d.company||'Company') + ' — Live Books';
+    const tiles = [
+      ['Receivables', inr(d.receivables), (d.debtors||[]).length+' parties owe you'],
+      ['Card dues', inrL(d.card_dues), (d.cards||[]).length+' cards outstanding'],
+      ['Cash in hand', inr(d.cash), 'as per books'],
+      ['Tracked', (d.ledger_count||0)+' ledgers', (d.voucher_count||0).toLocaleString('en-IN')+' vouchers']
+    ];
+    document.getElementById('tiles').innerHTML = tiles.map(([l,v,m])=>
+      `<div class="tile"><div class="label">${l}</div><div class="val">${v}</div><div class="meta">${m}</div></div>`).join('');
+    bars('expenses', d.expenses, '');
+    bars('cards', d.cards, 'g');
+    rows('debtors', d.debtors);
+    rows('income', d.income);
+    const t = d.as_of ? new Date(d.as_of) : new Date();
+    document.getElementById('stamp').textContent = 'as of '+t.toLocaleString('en-IN',
+      {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('err').innerHTML =
+      '<div class="err">Could not reach Supabase: '+e.message+'. Is the project awake and the data synced?</div>';
+  }
+}
+async function loadActivity(){
+  try{
+    const r = await fetch(BASE+"/tally_mcp_activity", {method:'POST', headers:H, body:'{"p_limit":40}'});
+    if(!r.ok) return;
+    const rows = await r.json();
+    document.getElementById('activity').innerHTML = (rows||[]).map(a=>
+      `<tr><td>${a.at||''}</td><td>${a.client||''}</td><td>${a.tool||''}</td>`+
+      `<td>${a.company||'—'}</td><td style="color:var(--muted)">${a.summary||''}</td></tr>`).join('')
+      || '<tr><td colspan="5" style="color:var(--muted)">No activity yet</td></tr>';
+  }catch(e){}
+}
+
+(async () => { await loadCompanies(); load(); loadActivity(); })();
+setInterval(() => { load(); loadActivity(); }, 60000);
+</script>
+</body></html>
